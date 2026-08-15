@@ -1,8 +1,8 @@
 name: Fix Sauna Finder Model Recommendations
-on:
+'on':
   push:
     paths:
-      - '.github/workflows/fix-sauna-finder-models.yml'
+      - 'tools/fix_finder_models.py'
       - 'finder-trigger.txt'
 jobs:
   fix:
@@ -11,69 +11,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Upgrade recommendation logic
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          p=Path('index.html')
-          s=p.read_text()
-          old=r"function showResult\(\)\{.*?\}draw\(\);"
-          new=r'''function saunaMatches(){
- const a=answers;
- const models=[];
- const add=(name,brand,type,fit)=>{if(!models.some(m=>m.name===name))models.push({name,brand,type,fit})};
- const outdoor=a.location==='outdoors'||a.priority==='outdoor';
- const small=a.seating==='1-2'||a.space==='compact';
- const large=a.seating==='5plus'||a.space==='large';
- const wantsTrad=a.heat==='traditional'||a.priority==='traditional';
- const wantsIR=a.heat==='infrared'||a.priority==='daily';
- const undecided=a.heat==='compare'||a.heat==='unsure';
-
- if(outdoor){
-   add('Hekla Outdoor Cabin','Hekla','Traditional Outdoor','Best fit for a dedicated backyard retreat and outdoor installation.');
-   if(large) add('Hekla Larger Outdoor Cabin','Hekla','Traditional Outdoor','A better starting point when you want more seating and have room to build around it.');
-   if(undecided||wantsIR) add('Hekla Indoor Infrared','Hekla','Infrared','Worth comparing if you like the idea of easier everyday heat but are still deciding where the sauna ultimately belongs.');
- } else {
-   if(wantsTrad){
-     add(small?'Hekla Traditional 210X':'Hekla Traditional Sauna','Hekla','Traditional','Strong match for classic high heat, stones and the Finnish-style sauna experience.');
-     if(!small) add('Hekla Traditional Larger-Capacity Model','Hekla','Traditional','A better direction when seating capacity matters more than keeping the footprint compact.');
-   }
-   if(wantsIR){
-     add('Hekla Infrared Sauna','Hekla','Infrared','Strong match for frequent use, gentler operating temperatures and everyday wellness.');
-     add('Cal Saunas Infrared Model','Cal Saunas','Infrared','A second infrared option to compare for layout, finish, heater placement and comfort.');
-   }
-   if(undecided||(!wantsTrad&&!wantsIR)){
-     add(small?'Hekla Traditional 210X':'Hekla Traditional Sauna','Hekla','Traditional','Gives you the classic high-heat benchmark so you can compare the traditional experience directly.');
-     add('Hekla Infrared Sauna','Hekla','Infrared','Gives you an easy-use infrared benchmark based on your seating and space answers.');
-     add('Cal Saunas Infrared Model','Cal Saunas','Infrared','Adds a second infrared option so the choice is not limited to one brand or one heat experience.');
-   }
- }
- if(models.length<3 && !outdoor){
-   add('Cal Saunas Infrared Model','Cal Saunas','Infrared','Useful comparison model for comfort, finish and day-to-day usability.');
-   add('Hekla Traditional Sauna','Hekla','Traditional','Useful traditional comparison even if you did not select a heat style yet.');
- }
- return models.slice(0,3);
-}
-function showResult(){
- const matches=saunaMatches();
- const seatLabel=answers.seating==='1-2'?'1–2 people':answers.seating==='3-4'?'3–4 people':answers.seating==='5plus'?'5+ people':'Seating still to be finalized';
- const spaceLabel=answers.space==='compact'?'Compact footprint':answers.space==='medium'?'Typical residential space':answers.space==='large'?'Flexible / larger space':'We should help measure the space';
- qbox.style.display='none';
- steps.innerHTML=labels.map((l,i)=>`<div class="step"><i>✓</i>${l}</div>`).join('');
- result.className='result show';
- result.innerHTML=`<div class="result-kicker">Your Top Sauna Matches</div><h3>Here are the three models we’d start with.</h3><p>You do not need to know whether you want traditional or infrared yet. We used all five answers to build a practical shortlist.</p><div class="result-grid" style="grid-template-columns:1fr">${matches.map((m,i)=>`<div class="result-box"><b>#${i+1} — ${m.brand}</b><strong style="font-size:18px">${m.name}</strong><div class="small" style="margin:5px 0 8px">${m.type}</div>${m.fit}</div>`).join('')}</div><div class="result-box"><b>Your starting requirements</b>${seatLabel} · ${spaceLabel}</div><p style="margin-top:20px"><b>Next step:</b> We’ll confirm the exact model names, dimensions, electrical requirements and installation details with you before you buy.</p><div class="result-actions"><a class="btn" href="#showrooms">Visit a Showroom →</a><a class="btn alt" style="color:#1b2628;border-color:#b98a51" href="tel:+14123260361">Call 412-326-0361</a><a class="btn alt" style="color:#1b2628;border-color:#b98a51" href="mailto:sales@hottubfactoryoutlet.com?subject=My%20Sauna%20Finder%20Matches">Email Us</a></div><div style="margin-top:20px"><button class="restart" id="restart">↻ Start the Sauna Finder Again</button></div>`;
- document.getElementById('restart').onclick=()=>{current=0;answers={};draw();document.getElementById('finder').scrollIntoView({behavior:'smooth'})};
- result.scrollIntoView({behavior:'smooth',block:'center'});
-}
-draw();'''
-          if re.search(old,s,flags=re.S):
-              s=re.sub(old,new,s,flags=re.S)
-          else:
-              raise SystemExit('Finder script pattern not found')
-          p.write_text(s)
-          PY
-      - name: Commit finder fix
+      - name: Apply Finder patch
+        run: python3 tools/fix_finder_models.py
+      - name: Commit Finder fix
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
