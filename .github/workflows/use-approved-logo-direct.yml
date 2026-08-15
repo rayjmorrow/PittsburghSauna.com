@@ -14,7 +14,7 @@ jobs:
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text()
-          s=s.replace("assets/htfo-logo-header-new.jpg?v=20260815-2","assets/htfo-logo-approved.jpg?v=20260815-3")
+          s=s.replace("assets/htfo-logo-header-new.jpg?v=20260815-2","assets/htfo-logo-approved.jpg?v=20260815-4")
           s=s.replace(";mix-blend-mode:multiply;filter:brightness(1.65) saturate(1.7)","")
           p.write_text(s)
           PY
