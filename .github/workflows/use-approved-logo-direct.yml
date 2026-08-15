@@ -1,10 +1,8 @@
 name: Use approved HTFO logo direct
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 jobs:
   update-logo:
-    if: "github.actor != 'github-actions[bot]'"
     runs-on: ubuntu-latest
     permissions:
       contents: write
