@@ -1,0 +1,35 @@
+name: Switch HTFO logo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/switch-logo.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-logo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Point site to the dark-background logo asset
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          old = 'assets/htfo-logo.jpg'
+          new = 'assets/htfo-logo-dark-fixed.png?v=20260815-1'
+          if old not in s:
+              raise SystemExit('Expected current logo reference not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+      - name: Commit site update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Use dark HTFO logo asset in site header'
+          git push
