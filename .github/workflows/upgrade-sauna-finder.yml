@@ -1,0 +1,80 @@
+name: Upgrade Sauna Finder
+on: workflow_dispatch
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upgrade finder experience
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('.result{display:none;background:#f8f3eb;border:1px solid #dfd3c2;padding:24px;margin-top:18px}.result.show{display:block}', '.result{display:none;background:#f8f3eb;border:1px solid #dfd3c2;padding:30px;margin-top:18px}.result.show{display:block}.result h3{font-size:32px;margin:4px 0 10px}.result-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.18em;font-weight:800;color:#8a6338}.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.result-box{background:#fff;border:1px solid #ded5c8;padding:17px}.result-box b{display:block;font-size:12px;letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px}.result-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.restart{background:none;border:0;padding:0;color:#76542d;font-weight:800;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}')
+          new_script=r'''<script>
+const quiz=[
+ {key:'location',title:'Where will your sauna go?',help:'Start with the space. This immediately narrows the best sauna styles for your home.',options:[['indoors','Indoors'],['outdoors','Outdoors'],['either','Either could work'],['unsure','I need help deciding']]},
+ {key:'heat',title:'What sauna experience sounds best?',help:'There is no wrong answer. Choose the experience you picture yourself using most often.',options:[['traditional','Traditional high heat & steam'],['infrared','Gentler infrared warmth'],['compare','I want to compare both'],['unsure','Not sure — help me choose']]},
+ {key:'seating',title:'How many people should it comfortably seat?',help:'Think about normal use, not just the biggest gathering you might have.',options:[['1-2','1–2 people'],['3-4','3–4 people'],['5plus','5+ people'],['unsure','I am not sure yet']]},
+ {key:'priority',title:'What matters most to you?',help:'This helps us understand which features and construction details deserve the most attention.',options:[['traditional','Deep heat & the traditional sauna experience'],['daily','Everyday wellness & convenience'],['design','Design & appearance'],['outdoor','Creating an outdoor retreat']]},
+ {key:'space',title:'How would you describe the space you have?',help:'Exact measurements can come later. For now, give us the closest description.',options:[['compact','Compact — I want to use space efficiently'],['medium','Medium — room for a typical 2–4 person sauna'],['large','Large — I have flexibility'],['measure','I need help measuring / planning the space']]}
+];
+let current=0,answers={};
+const steps=document.getElementById('steps'),qbox=document.getElementById('qbox'),result=document.getElementById('result');
+const labels=['Location','Sauna Style','Seating','Priorities','Available Space'];
+function draw(){
+ result.className='result'; result.innerHTML=''; qbox.style.display='block';
+ steps.innerHTML=quiz.map((q,i)=>`<div class="step ${i===current?'active':''}"><i>${i+1}</i>${labels[i]}</div>`).join('');
+ const q=quiz[current];
+ qbox.innerHTML=`<div class="eyebrow">Question ${current+1} of 5</div><h3>${q.title}</h3><div class="small">${q.help}</div><div class="choices">${q.options.map(([v,l])=>`<button class="choice ${answers[q.key]===v?'selected':''}" data-v="${v}">${l}</button>`).join('')}</div><div class="quizfoot"><div class="small">Choose the answer that is closest for you.</div><div>${current?'<button class="btn alt" style="color:#1b2628;border-color:#b98a51;margin-right:8px" id="back">Back</button>':''}<button class="btn" id="next">${current===4?'See My Sauna Matches →':'Next Question →'}</button></div></div>`;
+ document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{answers[q.key]=b.dataset.v;draw()});
+ if(current)document.getElementById('back').onclick=()=>{current--;draw()};
+ document.getElementById('next').onclick=()=>{if(!answers[q.key])return alert('Choose the option that is closest for you.');if(current<4){current++;draw()}else showResult()};
+}
+function recommendation(){
+ const a=answers; let title,why,brand;
+ if(a.location==='outdoors'||a.priority==='outdoor'){
+   title='Outdoor sauna is your strongest match';
+   why='You are building the sauna into the destination itself. An outdoor cabin-style sauna gives you the traditional retreat feeling while keeping the sauna experience separate from the house.';
+   brand='Start with Hekla outdoor models, then compare size, heater and site requirements with us.';
+ } else if(a.heat==='infrared'||a.priority==='daily'){
+   title='Infrared sauna is your strongest match';
+   why='Your answers point toward an easy-to-use sauna that fits naturally into a regular wellness routine. Infrared delivers direct radiant warmth at gentler operating temperatures.';
+   brand='Compare Hekla and Cal infrared options based on size, heater layout, finish and the room where it will live.';
+ } else if(a.heat==='traditional'||a.priority==='traditional'){
+   title='Traditional sauna is your strongest match';
+   why='You are looking for the classic sauna ritual: higher temperatures, heated stones and the option to add humidity for that unmistakable Finnish-style experience.';
+   brand='Hekla traditional models are a strong starting point. We can help match heater size, room size and installation needs.';
+ } else {
+   title='You should compare traditional and infrared side by side';
+   why='Your answers do not point to one obvious winner — and that is useful. Feeling the difference and comparing the day-to-day experience will make the decision much easier.';
+   brand='Visit us and we will narrow Hekla and Cal options around your space, seating needs and preferred experience.';
+ }
+ const seats=a.seating==='1-2'?'1–2 person':a.seating==='3-4'?'3–4 person':a.seating==='5plus'?'5+ person':'Size to be determined';
+ const space=a.space==='compact'?'Compact footprint':a.space==='medium'?'Typical residential space':a.space==='large'?'Flexible / larger space':'Measure with our help';
+ return {title,why,brand,seats,space};
+}
+function showResult(){
+ const r=recommendation(); qbox.style.display='none';
+ steps.innerHTML=labels.map((l,i)=>`<div class="step"><i>✓</i>${l}</div>`).join('');
+ result.className='result show';
+ result.innerHTML=`<div class="result-kicker">Your Sauna Matches</div><h3>${r.title}</h3><p>${r.why}</p><div class="result-grid"><div class="result-box"><b>Recommended direction</b>${r.brand}</div><div class="result-box"><b>Your starting size</b>${r.seats}<br>${r.space}</div></div><p><b>Next step:</b> We’ll help you compare the actual models, electrical requirements, dimensions and installation details before you buy.</p><div class="result-actions"><a class="btn" href="#showrooms">Visit a Showroom →</a><a class="btn alt" style="color:#1b2628;border-color:#b98a51" href="tel:+14123260361">Call 412-326-0361</a><a class="btn alt" style="color:#1b2628;border-color:#b98a51" href="mailto:sales@hottubfactoryoutlet.com?subject=My%20Sauna%20Finder%20Results">Email Us</a></div><div style="margin-top:20px"><button class="restart" id="restart">↻ Start the Sauna Finder Again</button></div>`;
+ document.getElementById('restart').onclick=()=>{current=0;answers={};draw();document.getElementById('finder').scrollIntoView({behavior:'smooth'})};
+ result.scrollIntoView({behavior:'smooth',block:'center'});
+}
+draw();
+</script>'''
+          s=re.sub(r'<script>const quiz=.*?</script>',new_script,s,flags=re.S)
+          p.write_text(s)
+          PY
+      - name: Commit Sauna Finder
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Upgrade Sauna Finder experience"
+          git push
