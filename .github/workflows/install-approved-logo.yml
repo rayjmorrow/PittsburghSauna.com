@@ -1,10 +1,8 @@
 name: Install approved HTFO logo
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 jobs:
   install-logo:
-    if: "github.actor != 'github-actions[bot]'"
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -16,16 +14,11 @@ jobs:
         run: |
           mkdir -p assets
           gh api repos/${{ github.repository }}/git/blobs/56d0e60eb06e8b52a2883d5d7c2febe4c2f4b6d0 --jq .content | tr -d '\n' | base64 -d > assets/htfo-logo-approved.jpg
-          file assets/htfo-logo-approved.jpg
           python - <<'PY'
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text()
-          for old in [
-              'assets/htfo-logo-header-new.jpg?v=20260815-2',
-              'assets/htfo-logo-dark-fixed.png?v=20260815-1',
-              'assets/htfo-logo.jpg'
-          ]:
+          for old in ['assets/htfo-logo-header-new.jpg?v=20260815-2','assets/htfo-logo-dark-fixed.png?v=20260815-1','assets/htfo-logo.jpg']:
               s=s.replace(old,'assets/htfo-logo-approved.jpg?v=20260815-5')
           s=s.replace(';mix-blend-mode:multiply;filter:brightness(1.65) saturate(1.7)','')
           p.write_text(s)
@@ -35,5 +28,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/htfo-logo-approved.jpg index.html
-          git commit -m "Install approved HTFO header logo"
+          git diff --cached --quiet || git commit -m "Install approved HTFO header logo"
+          git pull --rebase origin main
           git push
