@@ -1,0 +1,23 @@
+name: Link Site Pages
+'on':
+  push:
+    paths:
+      - 'tools/link_site_pages.py'
+      - 'navigation-trigger.txt'
+jobs:
+  link:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Link brand and learning pages
+        run: python3 tools/link_site_pages.py
+      - name: Commit navigation updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html hekla-saunas/index.html cal-saunas/index.html
+          git diff --cached --quiet || git commit -m "Link brand and Learning Center pages"
+          git pull --rebase origin main
+          git push
