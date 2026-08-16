@@ -1,0 +1,30 @@
+name: Link Hekla Brand Page
+'on':
+  push:
+    paths:
+      - 'hekla-link-trigger.txt'
+jobs:
+  link:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Link Hekla page from homepage
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('<a href="#hekla">Hekla</a>','<a href="hekla-saunas/">Hekla</a>')
+          s=s.replace('<a class="btn alt" href="#finder">Explore Hekla →</a>','<a class="btn alt" href="hekla-saunas/">Explore Hekla →</a>',1)
+          p.write_text(s)
+          PY
+      - name: Commit links
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Link homepage to Hekla brand page"
+          git pull --rebase origin main
+          git push
