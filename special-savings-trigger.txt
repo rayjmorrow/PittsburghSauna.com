@@ -1,1 +1,1 @@
-refine special savings page and hide offer timing details
+run fixed-date Special Savings campaign ending September 6, 2026
