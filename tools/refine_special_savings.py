@@ -1,6 +1,8 @@
 from pathlib import Path
 import re
 
+CAMPAIGN_END = "September 6, 2026"
+
 specials = Path('specials/index.html')
 if not specials.exists():
     raise SystemExit('specials/index.html not found')
@@ -16,26 +18,33 @@ for p in Path('.').rglob('index.html'):
 
 s = specials.read_text()
 
-# Replace the landing hero. Do not reveal the offer value/type or expiration timing before submission.
-hero = '''<section class="hero"><div class="wrap"><div class="hero-copy"><div class="eyebrow">Exclusive Offer · Just For You</div><h1>SPECIAL SAVINGS</h1><h2>Tell us a little about yourself.</h2><p>Answer a few quick questions and we’ll email you a personalized certificate with a special offer selected for your project.</p><div class="hero-points"><span>🔒 Exclusive invitation</span><span>✉ Personalized for you</span><span>★ Special savings</span></div><a class="btn" href="#questionnaire">Get My Special Offer →</a></div></div></section>'''
+# Fixed-date campaign hero. We reveal the deadline, but not the offer amount or voucher type.
+hero = f'''<section class="hero"><div class="wrap"><div class="hero-copy"><div class="eyebrow">Limited-Time Pittsburgh Sauna Offer</div><h1>SPECIAL SAVINGS</h1><h2>Our current sale ends {CAMPAIGN_END}.</h2><p>Answer a few quick questions and we’ll email you a personalized certificate with the special savings available for your project.</p><div class="hero-points"><span>🔒 Exclusive savings</span><span>✉ Personalized for you</span><span>★ Sale ends {CAMPAIGN_END}</span></div><a class="btn" href="#questionnaire">Get My Special Offer →</a></div></div></section>'''
 s = re.sub(r'<section class="hero">.*?</section><section class="strip">', hero + '<section class="strip">', s, count=1, flags=re.S)
 
-# Keep the offer private until the questionnaire is submitted.
+# Keep the actual offer private until the questionnaire is submitted.
 s = s.replace('Hot Tub Factory Outlet VIP Savings', 'Special Savings')
 s = s.replace('Duck Bucks savings certificate', 'personalized savings certificate')
 s = s.replace('Duck Bucks certificate', 'savings certificate')
 s = s.replace('VIP Savings Questionnaire', 'Special Savings Questionnaire')
 s = s.replace('Your savings are personal.', 'Your offer is personal.')
 s = s.replace('We personalize your voucher', 'We personalize your offer')
-s = s.replace('Your certificate will be issued in your name and will expire 18 days after the date it is emailed to you.', 'Your personalized certificate will be emailed directly to you after your request is reviewed.')
-s = s.replace('Each certificate expires 18 days after it is emailed.', 'Your certificate will include its own valid-through date.')
-s = s.replace('The expiration date will be 18 days from the email date.', 'Your certificate will include its valid-through date.')
-s = s.replace('Your certificate is emailed to you and remains valid for 18 days from the send date.', 'Your certificate is emailed directly to you with its valid-through date printed on it.')
-s = s.replace('Use it within 18 days', 'Use it by the date shown')
-s = s.replace('Expires in 18 days', 'Valid-through date included')
+s = s.replace('Your certificate will be issued in your name and will expire 18 days after the date it is emailed to you.', f'Your personalized certificate will show the current sale end date: {CAMPAIGN_END}.')
+s = s.replace('Each certificate expires 18 days after it is emailed.', f'The current special savings event ends {CAMPAIGN_END}.')
+s = s.replace('The expiration date will be 18 days from the email date.', f'Your certificate will be valid through {CAMPAIGN_END}.')
+s = s.replace('Your certificate is emailed to you and remains valid for 18 days from the send date.', f'Your certificate is emailed directly to you and is valid through {CAMPAIGN_END}.')
+s = s.replace('Your certificate will include its own valid-through date.', f'Your certificate will be valid through {CAMPAIGN_END}.')
+s = s.replace('Your certificate will include its valid-through date.', f'Your certificate will be valid through {CAMPAIGN_END}.')
+s = s.replace('Your certificate is emailed directly to you with its valid-through date printed on it.', f'Your certificate is emailed directly to you with “Valid Through {CAMPAIGN_END}” printed on it.')
+s = s.replace('Use it within 18 days', f'Use it by {CAMPAIGN_END}')
+s = s.replace('Expires in 18 days', f'Ends {CAMPAIGN_END}')
+s = s.replace('Valid-through date included', f'Ends {CAMPAIGN_END}')
 s = re.sub(r'18 days[^<.]*[.]?', '', s, flags=re.I)
 s = s.replace('Duck Bucks have no cash value and are valid only on qualifying purchases. One Duck Bucks offer per purchase. ', '')
 s = s.replace('Final voucher terms control.', 'Final offer terms control.')
+
+# Make the public explanatory strip describe a real campaign deadline, not a rolling expiration.
+s = re.sub(r'<div class="stripitem"><b>TIME-SENSITIVE</b><span>.*?</span></div>', f'<div class="stripitem"><b>LIMITED-TIME SALE</b><span>Current special savings end {CAMPAIGN_END}.</span></div>', s, flags=re.S)
 
 # Hide internal implementation/CRM status from customers.
 s = re.sub(r'<div class="mini-status">.*?</div>', '', s, flags=re.S)
