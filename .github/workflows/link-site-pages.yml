@@ -11,13 +11,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Link brand and learning pages
+      - name: Link site pages and navigation
         run: python3 tools/link_site_pages.py
       - name: Commit navigation updates
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html hekla-saunas/index.html cal-saunas/index.html
-          git diff --cached --quiet || git commit -m "Link brand and Learning Center pages"
+          git add index.html hekla-saunas/index.html cal-saunas/index.html learning-center/index.html
+          git diff --cached --quiet || git commit -m "Update site navigation links"
           git pull --rebase origin main
           git push
