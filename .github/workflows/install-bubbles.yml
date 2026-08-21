@@ -1,0 +1,25 @@
+name: Install Bubbles
+'on':
+  push:
+    paths:
+      - 'tools/install_bubbles.py'
+      - 'assets/bubbles.js'
+      - 'assets/bubbles.svg'
+      - 'bubbles-trigger.txt'
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bubbles sitewide
+        run: python3 tools/install_bubbles.py
+      - name: Commit Bubbles installation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add '**/index.html' index.html
+          git diff --cached --quiet || git commit -m "Install Bubbles sitewide"
+          git pull --rebase origin main
+          git push
