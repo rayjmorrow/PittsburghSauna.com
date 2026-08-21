@@ -17,9 +17,27 @@
   .bb-body{padding:15px;max-height:430px;overflow:auto}.bb-msg{background:#fff;border:1px solid #e4dbce;border-radius:14px 14px 14px 4px;padding:11px 12px;margin:0 0 10px;font-size:13px;line-height:1.45}.bb-msg.me{background:#eaf3fb;border-color:#c8dfef;border-radius:14px 14px 4px 14px;margin-left:36px}
   .bb-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}.bb-actions button,.bb-actions a{border:1px solid #bba889;background:#fff;color:#172326;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:800;cursor:pointer;text-decoration:none}.bb-actions .gold{background:#c48a26;color:white;border-color:#c48a26}
   .bb-input{display:flex;gap:8px;border-top:1px solid #e1d8ca;padding:11px;background:#fff}.bb-input input{flex:1;border:1px solid #cfd5d2;border-radius:10px;padding:10px;font:inherit;font-size:13px}.bb-input button{border:0;background:#0e1719;color:white;border-radius:10px;padding:0 13px;font-weight:800;cursor:pointer}
+  .heater-reco{margin-top:14px;padding:12px 13px;background:#f3ede4;border-top:1px solid #ded5c8;font-size:11px;line-height:1.45}.heater-reco b{display:block;color:#76542d;text-transform:uppercase;letter-spacing:.07em;font-size:9px;margin-bottom:4px}.heater-reco strong{font-size:12px;color:#172326}.heater-reco .alt-heater{display:block;color:#687477;margin-top:4px}.heater-reco .heater-note{display:block;color:#778184;margin-top:5px;font-size:9px}
   @media(max-width:600px){#bb-wrap{right:12px;bottom:12px}#bb-launch img{width:52px;height:52px}#bb-teaser{display:none}#bb-panel{position:fixed;right:12px;left:12px;bottom:74px;width:auto;max-height:70vh}.bb-body{max-height:48vh}}
   `;
   const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);
+
+  if(page==='hekla'){
+    const traditional=document.querySelector('#traditional');
+    if(traditional){
+      traditional.querySelectorAll('.model').forEach(card=>{
+        const title=card.querySelector('h3');
+        if(!title||!/^Traditional\s+(160|210|210X|220)$/i.test(title.textContent.trim()))return;
+        const price=card.querySelector('.price');
+        if(!price||card.querySelector('.heater-reco'))return;
+        const rec=document.createElement('div');
+        rec.className='heater-reco';
+        rec.innerHTML='<b>Recommended Heater — Sold Separately</b><strong>Harvia Cilindro PC90E · 9 kW — $1,318</strong><span class="alt-heater">Wall-mount alternative: Harvia Spirit SP90E · 9 kW — $1,930</span><span class="heater-note">Heater pricing shown separately from sauna price. Controls, stones and electrical installation are separate unless specifically included in your quote.</span>';
+        price.insertAdjacentElement('afterend',rec);
+      });
+    }
+  }
+
   const wrap=document.createElement('div');wrap.id='bb-wrap';
   wrap.innerHTML=`<div id="bb-panel" role="dialog" aria-label="Chat with Bubbles"><div class="bb-head"><img src="${icon}" alt="Bubbles"><div><b>Bubbles</b><small>Your sauna sidekick</small></div><button class="bb-close" aria-label="Close Bubbles">×</button></div><div class="bb-body" id="bb-body"></div><div class="bb-input"><input id="bb-input" aria-label="Ask Bubbles a question" placeholder="Ask me about saunas, heaters, savings…"><button id="bb-send">Send</button></div></div><button id="bb-launch" aria-label="Open Bubbles"><span id="bb-teaser"></span><img src="${icon}" alt="Bubbles"></button>`;
   document.body.appendChild(wrap);
@@ -29,7 +47,7 @@
   const answer=(q)=>{
     const t=q.toLowerCase();
     if(/traditional|infrared/.test(t)){add('Traditional gives you the classic high-heat sauna experience with stones and optional steam. Infrared heats you more directly at a lower air temperature and is easy for everyday use. If you tell me how you plan to use it, the Sauna Finder can narrow it down.');actions([{label:'Use Sauna Finder',href:root+'#finder',gold:true}]);return;}
-    if(/heater|harvia|9 ?kw|kilowatt/.test(t)){add(page==='hekla'?'On Hekla traditional and cabin models, the heater is priced separately. We currently show complete Harvia Cilindro and Spirit packages with the Fenix control and required stones. I can take you right to them.':'Some sauna models include their heating system and others use a separate heater package. I can send you to the Sauna Finder so we match the heater to the room instead of guessing.');actions(page==='hekla'?[{label:'See Heater Packages',href:'#heaters',gold:true}]:[{label:'Use Sauna Finder',href:root+'#finder',gold:true}]);return;}
+    if(/heater|harvia|9 ?kw|kilowatt/.test(t)){add(page==='hekla'?'Hekla traditional sauna prices are shown without the heater. For the traditional models, we recommend the 9 kW Harvia Cilindro PC90E, with the wall-mounted Spirit SP90E as an alternative. Heater pricing is shown separately so you can see exactly what you are buying.':'Some sauna models include their heating system and others use a separate heater. I can send you to the Sauna Finder so we match the heater to the room instead of guessing.');actions(page==='hekla'?[{label:'See Heater Options',href:'#heaters',gold:true}]:[{label:'Use Sauna Finder',href:root+'#finder',gold:true}]);return;}
     if(/price|sale|special|saving|deal|discount/.test(t)){add('There may be additional special savings available on the sauna or outdoor product you’re considering. We keep the offer itself private until you request it.');actions([{label:'Get Special Savings',href:root+'specials/',gold:true}]);return;}
     if(/showroom|visit|location|monroeville|wexford/.test(t)){add('We have showrooms in Monroeville and Wexford. If you want to see products in person, I can take you to the showroom section.');actions([{label:'Show Me the Showrooms',href:root+'#showrooms',gold:true}]);return;}
     if(/people|person|size|fit|room|space/.test(t)){add('The right size depends on how many people will use it and the space you have. The Sauna Finder is the fastest way to narrow that down without overbuying.');actions([{label:'Help Me Choose',href:root+'#finder',gold:true}]);return;}
@@ -41,8 +59,8 @@
       add('Hey — Bubbles here. I can help you get the current special savings without making you hunt around for it.');
       actions([{label:'Take Me to the Questionnaire',href:'#questionnaire',gold:true},{label:'What happens next?',on:()=>add('Complete the questionnaire and we’ll prepare the current offer in your name and email it to you.')}]);
     } else if(page==='hekla'){
-      add('Looking at Hekla? I can help you compare the traditional, infrared and outdoor options — and make sure you don’t forget the heater package where one is required.');
-      actions([{label:'Traditional',href:'#traditional'},{label:'Infrared',href:'#infrared'},{label:'Outdoor',href:'#outdoor'},{label:'Heater Packages',href:'#heaters'},{label:'Special Savings',href:'../specials/',gold:true}]);
+      add('Looking at Hekla? I can help you compare the traditional, infrared and outdoor options — and match a separately priced heater where one is required.');
+      actions([{label:'Traditional',href:'#traditional'},{label:'Infrared',href:'#infrared'},{label:'Outdoor',href:'#outdoor'},{label:'Heater Options',href:'#heaters'},{label:'Special Savings',href:'../specials/',gold:true}]);
     } else if(page==='cal'){
       add('Looking at Cal Saunas? I can help you narrow the type and size first, then point you toward current special savings when you’re ready.');
       actions([{label:'Help Me Choose',href:'../#finder',gold:true},{label:'Traditional vs Infrared?',on:()=>answer('traditional infrared')},{label:'Special Savings',href:'../specials/'}]);
