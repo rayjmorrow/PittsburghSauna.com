@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Bubbles</title><desc id="desc">Yellow duck mascot wearing black sunglasses</desc>
+  <defs>
+    <linearGradient id="duck" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd92f"/><stop offset="1" stop-color="#f2b900"/></linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#42a9e8"/><stop offset="1" stop-color="#0871b9"/></linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="76" fill="#fff" stroke="#e8d8bd" stroke-width="4"/>
+  <path d="M17 122c18-13 35-4 51-1 21 4 37-12 57-5 8 3 14 8 20 13v15H15z" fill="url(#water)"/>
+  <path d="M31 132c14-7 25 4 39 2 18-2 30-12 47-5 8 3 14 5 22 3" fill="none" stroke="#dff6ff" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="80" cy="91" rx="43" ry="42" fill="url(#duck)"/>
+  <circle cx="80" cy="64" r="37" fill="url(#duck)"/>
+  <path d="M65 29c4-11 11-15 17-10-1 5-4 8-8 11 8-7 16-8 20-2-3 6-8 9-15 10" fill="url(#duck)"/>
+  <path d="M49 58c8-8 18-11 29-8M82 50c11-2 21 1 29 8" fill="none" stroke="#111" stroke-width="7" stroke-linecap="round"/>
+  <rect x="45" y="51" width="34" height="25" rx="9" fill="#111"/><rect x="82" y="51" width="34" height="25" rx="9" fill="#111"/>
+  <path d="M79 60h5" stroke="#111" stroke-width="6"/><path d="M51 55l19 15M88 55l19 15" stroke="#56616a" stroke-width="3" opacity=".45"/>
+  <path d="M57 81c9-9 37-10 48 0-8 13-38 16-48 0z" fill="#f47a16" stroke="#c75205" stroke-width="3"/>
+  <path d="M64 84c10 4 24 4 34 0" fill="none" stroke="#9f3b00" stroke-width="3" stroke-linecap="round"/>
+  <path d="M44 98c-10-8-18-3-19 5 0 9 8 17 17 18" fill="url(#duck)" stroke="#e4a900" stroke-width="2"/>
+  <path d="M27 98c-3-10 2-18 8-16 4 2 4 10 1 18" fill="url(#duck)" stroke="#e4a900" stroke-width="2"/>
+  <circle cx="80" cy="110" r="18" fill="#0b5ea8" opacity=".12"/>
+  <text x="80" y="116" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#075b9e">B</text>
+</svg>
