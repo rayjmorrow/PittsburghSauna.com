@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /specials/voucher/
+
+Sitemap: https://pittsburghsauna.com/sitemap.xml
