@@ -1,6 +1,7 @@
 (()=>{
   if(window.__pghBubblesLoaded)return; window.__pghBubblesLoaded=true;
   const script=document.currentScript; const base=script&&script.src?script.src.replace(/bubbles\.js(?:\?.*)?$/,''):'';
+  if(!window.__pghAnalyticsLoader){window.__pghAnalyticsLoader=true;const ga=document.createElement('script');ga.src=base+'analytics.js?v=20260825-1';ga.defer=true;document.head.appendChild(ga);}
   const icon=base+'bubbles.svg';
   const path=location.pathname.toLowerCase();
   const page=path.includes('/specials')?'specials':path.includes('/hekla-saunas')?'hekla':path.includes('/cal-saunas')?'cal':path.includes('/learning-center')?'learning':'home';
