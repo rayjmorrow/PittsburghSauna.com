@@ -1,5 +1,5 @@
 (()=>{
-  const GA_MEASUREMENT_ID=''; // Add GA4 Measurement ID, e.g. G-XXXXXXXXXX
+  const GA_MEASUREMENT_ID='G-S9NT6DN10R';
   if(!GA_MEASUREMENT_ID) return;
 
   window.dataLayer=window.dataLayer||[];
