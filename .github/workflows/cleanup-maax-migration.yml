@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Run targeted cleanup
-        run: python tools/cleanup_maax_migration.py
+        run: python tools/run_maax_cleanup.py
       - name: Commit updates
         run: |
           git config user.name "github-actions[bot]"
