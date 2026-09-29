@@ -1,0 +1,94 @@
+name: Apply Pittsburgh Sauna core SEO upgrade
+on:
+  push:
+    paths:
+      - 'seo-core-trigger.txt'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  seo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply SEO metadata, canonicals and structured data
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, json
+
+          pages = {
+            'index.html': {
+              'title':'Saunas for Sale Pittsburgh PA | Pittsburgh Sauna',
+              'desc':'Shop infrared, traditional and outdoor saunas in Pittsburgh, PA. Compare MAAX and Cal Saunas with local guidance at our Monroeville and Wexford showrooms.',
+              'url':'https://pittsburghsauna.com/',
+              'type':'WebPage'
+            },
+            'maax-saunas/index.html': {
+              'title':'MAAX Saunas Pittsburgh PA | Infrared & Outdoor Saunas',
+              'desc':'Shop MAAX SaunaWellness infrared and outdoor saunas in Pittsburgh. Compare sizes, electrical requirements and features with local support in Monroeville and Wexford.',
+              'url':'https://pittsburghsauna.com/maax-saunas/',
+              'type':'CollectionPage'
+            },
+            'cal-saunas/index.html': {
+              'title':'Cal Saunas Pittsburgh PA | Solara Infrared Saunas',
+              'desc':'Shop Cal Saunas Solara infrared saunas in Pittsburgh. Compare indoor and outdoor models, 120V requirements, sizes and sale pricing from Pittsburgh Sauna.',
+              'url':'https://pittsburghsauna.com/cal-saunas/',
+              'type':'CollectionPage'
+            },
+            'learning-center/index.html': {
+              'title':'Sauna Buying Guides & Electrical Help | Pittsburgh Sauna',
+              'desc':'Learn about sauna electrical requirements, infrared vs traditional heat, indoor vs outdoor placement, sauna sizing, operating cost and installation planning.',
+              'url':'https://pittsburghsauna.com/learning-center/',
+              'type':'CollectionPage'
+            },
+          }
+
+          org = {
+            '@context':'https://schema.org','@type':'Organization','@id':'https://pittsburghsauna.com/#organization',
+            'name':'Pittsburgh Sauna','url':'https://pittsburghsauna.com/','telephone':'+1-412-326-0361',
+            'parentOrganization':{'@type':'Organization','name':'Hot Tub Factory Outlet','url':'https://hottubfactoryoutlet.com/'},
+            'areaServed':{'@type':'AdministrativeArea','name':'Western Pennsylvania'},
+            'department':[
+              {'@type':'Store','name':'Pittsburgh Sauna - Monroeville','telephone':'+1-412-326-0361','address':{'@type':'PostalAddress','streetAddress':'4680 Old William Penn Hwy','addressLocality':'Monroeville','addressRegion':'PA','postalCode':'15146','addressCountry':'US'}},
+              {'@type':'Store','name':'Pittsburgh Sauna - Wexford','telephone':'+1-412-326-0361','address':{'@type':'PostalAddress','streetAddress':'10269 Perry Hwy','addressLocality':'Wexford','addressRegion':'PA','postalCode':'15090','addressCountry':'US'}}
+            ]
+          }
+
+          for fn, meta in pages.items():
+            p=Path(fn)
+            if not p.exists():
+              print('skip missing',fn); continue
+            s=p.read_text(encoding='utf-8')
+            s=re.sub(r'<title>.*?</title>', f'<title>{meta["title"]}</title>', s, count=1, flags=re.I|re.S)
+            if re.search(r'<meta\s+name=["\']description["\']',s,re.I):
+              s=re.sub(r'<meta\s+name=["\']description["\']\s+content=["\'][^"\']*["\']\s*/?>', f'<meta name="description" content="{meta["desc"]}">', s, count=1, flags=re.I)
+            else:
+              s=s.replace('</head>',f'<meta name="description" content="{meta["desc"]}"></head>',1)
+            s=re.sub(r'<link\s+rel=["\']canonical["\'][^>]*>','',s,flags=re.I)
+            s=re.sub(r'<meta\s+name=["\']robots["\'][^>]*>','',s,flags=re.I)
+            s=re.sub(r'<script\s+type=["\']application/ld\+json["\'][^>]*data-ps-seo=["\']core["\'][^>]*>.*?</script>','',s,flags=re.I|re.S)
+            graph=[org,{'@context':'https://schema.org','@type':meta['type'],'@id':meta['url']+'#webpage','url':meta['url'],'name':meta['title'],'description':meta['desc'],'isPartOf':{'@type':'WebSite','@id':'https://pittsburghsauna.com/#website','name':'Pittsburgh Sauna','url':'https://pittsburghsauna.com/'},'about':{'@id':'https://pittsburghsauna.com/#organization'}}]
+            tags=f'<link rel="canonical" href="{meta["url"]}"><meta name="robots" content="index,follow,max-image-preview:large"><script type="application/ld+json" data-ps-seo="core">{json.dumps({"@context":"https://schema.org","@graph":graph},separators=(",",":"))}</script>'
+            s=s.replace('</head>',tags+'</head>',1)
+            p.write_text(s,encoding='utf-8')
+
+          # Retired Hekla URL: keep it out of the index and point equity to MAAX.
+          hp=Path('hekla-saunas/index.html')
+          if hp.exists():
+            hs=hp.read_text(encoding='utf-8')
+            hs=re.sub(r'<meta name="robots"[^>]*>','<meta name="robots" content="noindex,follow">',hs,count=1,flags=re.I)
+            hs=re.sub(r'<link rel="canonical"[^>]*>','<link rel="canonical" href="https://pittsburghsauna.com/maax-saunas/">',hs,count=1,flags=re.I)
+            hp.write_text(hs,encoding='utf-8')
+          PY
+      - name: Commit SEO upgrade
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html maax-saunas/index.html cal-saunas/index.html learning-center/index.html hekla-saunas/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'SEO: improve core metadata canonicals and schema'
+          git push
